@@ -14,6 +14,9 @@ export default function Home() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [shareCode, setShareCode] = useState<string>("");
   const [clipboardText, setClipboardText] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [accessCode, setAccessCode] = useState("");
+  const [downloadUrl, setDownloadUrl] = useState("");
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -25,16 +28,82 @@ export default function Home() {
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
     
     const files = e.dataTransfer.files;
     if (files && files[0]) {
-      setUploadedFile(files[0]);
-      // Generate mock share code
-      setShareCode(Math.random().toString(36).substr(2, 6).toUpperCase());
+      await uploadFile(files[0]);
+    }
+  };
+
+  const uploadFile = async (file: File) => {
+    setUploading(true);
+    setUploadedFile(file);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setShareCode(result.shareCode);
+        setDownloadUrl(result.downloadUrl);
+      } else {
+        console.error('Upload failed:', result.error);
+        // Reset states on error
+        setUploadedFile(null);
+        setShareCode("");
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadedFile(null);
+      setShareCode("");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files[0]) {
+      uploadFile(files[0]);
+    }
+  };
+
+  const handleAccessFile = async () => {
+    if (!accessCode.trim()) return;
+    
+    try {
+      const response = await fetch(`/api/download/${accessCode.toUpperCase()}`);
+      
+      if (response.ok) {
+        // Create download link
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = ''; // Browser will use filename from Content-Disposition header
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        const error = await response.json();
+        console.error('Download failed:', error.error);
+        // You could show a toast notification here
+      }
+    } catch (error) {
+      console.error('Download error:', error);
     }
   };
 
@@ -104,8 +173,15 @@ export default function Home() {
             <TabsContent value="upload">
               <Card className="glass-strong glow-soft">
                 <CardContent className="p-8">
+                  <input
+                    type="file"
+                    id="file-upload"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                    accept="*/*"
+                  />
                   <div
-                    className={`border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
+                    className={`border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 cursor-pointer ${
                       dragActive 
                         ? 'border-primary bg-primary/10 glow-primary' 
                         : 'border-border/40 hover:border-primary/50 hover:bg-accent/5'
@@ -114,8 +190,19 @@ export default function Home() {
                     onDragLeave={handleDrag}
                     onDragOver={handleDrag}
                     onDrop={handleDrop}
+                    onClick={() => !uploading && document.getElementById('file-upload')?.click()}
                   >
-                    {uploadedFile ? (
+                    {uploading ? (
+                      <div className="space-y-4">
+                        <div className="w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center glow-primary animate-pulse">
+                          <Upload className="w-8 h-8 text-primary animate-bounce" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">Uploading...</h3>
+                          <p className="text-muted-foreground">Please wait while we process your file</p>
+                        </div>
+                      </div>
+                    ) : uploadedFile && shareCode ? (
                       <div className="space-y-4">
                         <div className="w-16 h-16 mx-auto rounded-full bg-primary/20 flex items-center justify-center glow-primary">
                           {getFileIcon(uploadedFile.name)}
@@ -181,6 +268,8 @@ export default function Home() {
                       placeholder="ABC123" 
                       className="glass text-center text-2xl tracking-[0.3em] uppercase font-mono h-14"
                       maxLength={6}
+                      value={accessCode}
+                      onChange={(e) => setAccessCode(e.target.value)}
                     />
                   </div>
                   
@@ -200,7 +289,7 @@ export default function Home() {
                     />
                   </div>
                   
-                  <Button className="w-full h-12 text-base hover-glow">
+                  <Button className="w-full h-12 text-base hover-glow" onClick={handleAccessFile} disabled={!accessCode.trim()}>
                     <Download className="w-5 h-5 mr-3" />
                     Access File
                   </Button>
