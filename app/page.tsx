@@ -1,15 +1,18 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Link2, Copy, Download, FileText, ImageIcon, Code, Clock, Zap, Shield } from "lucide-react";
+import { QRCodeGenerator } from "@/components/QRCodeGenerator";
+import { Upload, Link2, Copy, Download, FileText, ImageIcon, Code, Clock, Zap, Shield, QrCode } from "lucide-react";
 
 export default function Home() {
+  const searchParams = useSearchParams();
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [shareCode, setShareCode] = useState<string>("");
@@ -19,6 +22,14 @@ export default function Home() {
   const [downloadUrl, setDownloadUrl] = useState("");
   const [textShareCode, setTextShareCode] = useState("");
   const [textUploading, setTextUploading] = useState(false);
+
+  // Handle URL parameters for direct access
+  useEffect(() => {
+    const codeParam = searchParams.get('code');
+    if (codeParam) {
+      setAccessCode(codeParam.toUpperCase());
+    }
+  }, [searchParams]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -255,11 +266,22 @@ export default function Home() {
                         </div>
                         <div className="bg-muted/20 rounded-lg p-4 max-w-sm mx-auto">
                           <p className="text-sm text-muted-foreground mb-2">Your share code:</p>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 mb-4">
                             <code className="text-2xl font-mono font-bold tracking-wider text-primary">{shareCode}</code>
                             <Button size="sm" variant="ghost" className="hover-glow">
                               <Copy className="w-4 h-4" />
                             </Button>
+                          </div>
+                          
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground mb-2">QR Code for mobile access:</p>
+                            <div className="inline-block p-2 bg-white rounded-lg">
+                              <QRCodeGenerator 
+                                text={`${window.location.origin}/?code=${shareCode}`}
+                                size={120}
+                                className="mx-auto"
+                              />
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -417,6 +439,17 @@ export default function Home() {
                             >
                               <Copy className="w-3 h-3" />
                             </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-card/20 rounded p-3 text-center">
+                          <p className="text-xs text-muted-foreground mb-2">QR Code:</p>
+                          <div className="inline-block p-2 bg-white rounded">
+                            <QRCodeGenerator 
+                              text={`${window.location.origin}/t/${textShareCode}`}
+                              size={100}
+                              className="mx-auto"
+                            />
                           </div>
                         </div>
                       </div>
