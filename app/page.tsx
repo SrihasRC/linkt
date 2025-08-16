@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,9 @@ export default function Home() {
     setUploading(true);
     setUploadedFile(file);
     
+    // Show upload started toast
+    toast.loading("Uploading file...", { id: "upload" });
+    
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -70,14 +74,26 @@ export default function Home() {
       if (result.success) {
         setShareCode(result.shareCode);
         setDownloadUrl(result.downloadUrl);
+        toast.success("File uploaded successfully!", { 
+          id: "upload",
+          description: `Share code: ${result.shareCode}`
+        });
       } else {
         console.error('Upload failed:', result.error);
+        toast.error("Upload failed", { 
+          id: "upload",
+          description: result.error || "Please try again"
+        });
         // Reset states on error
         setUploadedFile(null);
         setShareCode("");
       }
     } catch (error) {
       console.error('Upload error:', error);
+      toast.error("Upload failed", { 
+        id: "upload",
+        description: "Network error. Please check your connection."
+      });
       setUploadedFile(null);
       setShareCode("");
     } finally {
@@ -95,6 +111,8 @@ export default function Home() {
   const handleAccessFile = async () => {
     if (!accessCode.trim()) return;
     
+    toast.loading("Accessing file...", { id: "download" });
+    
     try {
       const response = await fetch(`/api/download/${accessCode.toUpperCase()}`);
       
@@ -110,13 +128,30 @@ export default function Home() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        
+        toast.success("File downloaded!", { 
+          id: "download",
+          description: "Check your downloads folder"
+        });
       } else {
         const error = await response.json();
-        console.error('Download failed:', error.error);
-        // You could show a toast notification here
+        const errorMessage = error.error === "File not found or expired" 
+          ? "File not found or expired" 
+          : error.error === "File has expired"
+          ? "File has expired"
+          : "Invalid share code";
+          
+        toast.error("Download failed", { 
+          id: "download",
+          description: errorMessage
+        });
       }
     } catch (error) {
       console.error('Download error:', error);
+      toast.error("Download failed", { 
+        id: "download",
+        description: "Network error. Please try again."
+      });
     }
   };
 
@@ -124,6 +159,7 @@ export default function Home() {
     if (!clipboardText.trim()) return;
     
     setTextUploading(true);
+    toast.loading("Sharing text...", { id: "text-share" });
     
     try {
       const response = await fetch('/api/text', {
@@ -141,11 +177,23 @@ export default function Home() {
       
       if (result.success) {
         setTextShareCode(result.shareCode);
+        toast.success("Text shared successfully!", { 
+          id: "text-share",
+          description: `Share code: ${result.shareCode}`
+        });
       } else {
         console.error('Text share failed:', result.error);
+        toast.error("Text sharing failed", { 
+          id: "text-share",
+          description: result.error || "Please try again"
+        });
       }
     } catch (error) {
       console.error('Text share error:', error);
+      toast.error("Text sharing failed", { 
+        id: "text-share",
+        description: "Network error. Please try again."
+      });
     } finally {
       setTextUploading(false);
     }
@@ -154,9 +202,10 @@ export default function Home() {
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      // You could show a toast notification here
+      toast.success("Copied to clipboard!");
     } catch (error) {
       console.error('Failed to copy:', error);
+      toast.error("Failed to copy to clipboard");
     }
   };
 
