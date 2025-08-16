@@ -1,103 +1,181 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { Upload, Link2, Clipboard, Timer, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [dragActive, setDragActive] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    // TODO: Handle file upload
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      {/* Hero Section */}
+      <div className="text-center mb-8 space-y-4">
+        <div className="flex items-center justify-center space-x-2 mb-4">
+          <Link2 className="h-8 w-8 text-primary glow-primary" />
+          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Linkt
+          </h1>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <p className="text-xl text-muted-foreground max-w-2xl">
+          Ultra-simple file & clipboard sharing between your devices
+        </p>
+        <p className="text-sm text-muted-foreground">
+          No signup required • Auto-expires in 24 hours • Works everywhere
+        </p>
+      </div>
+
+      {/* Main Interface */}
+      <div className="w-full max-w-4xl">
+        <Tabs defaultValue="upload" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 glass-strong rounded-2xl p-2 mb-8">
+            <TabsTrigger 
+              value="upload" 
+              className="rounded-xl data-[state=active]:glass-strong data-[state=active]:glow-soft transition-all duration-300"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Upload Files
+            </TabsTrigger>
+            <TabsTrigger 
+              value="clipboard" 
+              className="rounded-xl data-[state=active]:glass-strong data-[state=active]:glow-soft transition-all duration-300"
+            >
+              <Clipboard className="h-4 w-4 mr-2" />
+              Clipboard
+            </TabsTrigger>
+            <TabsTrigger 
+              value="access" 
+              className="rounded-xl data-[state=active]:glass-strong data-[state=active]:glow-soft transition-all duration-300"
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              Access Files
+            </TabsTrigger>
+          </TabsList>
+
+          {/* File Upload Tab */}
+          <TabsContent value="upload" className="space-y-6">
+            <Card className="glass-strong rounded-3xl border-0 hover-glow">
+              <CardContent className="p-8">
+                <div
+                  className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
+                    dragActive 
+                      ? "border-primary bg-primary/5 glow-primary" 
+                      : "border-border/50 hover:border-primary/50 hover:bg-primary/5"
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  <Upload className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-xl font-semibold mb-2">Drop files here</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Or click to select files (up to 100MB each)
+                  </p>
+                  <Button size="lg" className="rounded-xl glass hover-glow">
+                    Select Files
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Upload Options */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="glass rounded-2xl border-0 hover-glow">
+                <CardContent className="p-6">
+                  <Timer className="h-8 w-8 text-accent mb-3" />
+                  <h4 className="font-semibold mb-2">Auto Expiry</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Files automatically delete after 24 hours
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="glass rounded-2xl border-0 hover-glow">
+                <CardContent className="p-6">
+                  <Link2 className="h-8 w-8 text-accent mb-3" />
+                  <h4 className="font-semibold mb-2">Instant Sharing</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Get a 6-digit code or shareable link instantly
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Clipboard Tab */}
+          <TabsContent value="clipboard" className="space-y-6">
+            <Card className="glass-strong rounded-3xl border-0 hover-glow">
+              <CardContent className="p-8">
+                <div className="space-y-4">
+                  <h3 className="text-xl font-semibold">Share Text or Code</h3>
+                  <textarea
+                    placeholder="Paste your text, code snippets, notes, or anything here..."
+                    className="w-full h-64 p-4 bg-card/50 border border-border/30 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 backdrop-blur-sm"
+                  />
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">
+                      Supports syntax highlighting for code
+                    </p>
+                    <Button className="rounded-xl glass hover-glow">
+                      Share Text
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Access Files Tab */}
+          <TabsContent value="access" className="space-y-6">
+            <Card className="glass-strong rounded-3xl border-0 hover-glow">
+              <CardContent className="p-8 text-center">
+                <Share2 className="h-16 w-16 mx-auto mb-4 text-primary" />
+                <h3 className="text-xl font-semibold mb-4">Access Your Files</h3>
+                <div className="space-y-4 max-w-md mx-auto">
+                  <input
+                    type="text"
+                    placeholder="Enter 6-digit code (e.g., ABC123)"
+                    className="w-full p-4 text-center text-2xl font-mono bg-card/50 border border-border/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 backdrop-blur-sm uppercase tracking-wider"
+                    maxLength={6}
+                  />
+                  <Button size="lg" className="w-full rounded-xl glass hover-glow">
+                    Access Files
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground mt-4">
+                  Enter the code you received when uploading files
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Footer */}
+      <div className="mt-16 text-center text-sm text-muted-foreground">
+        <p>Made with ❤️ for seamless file sharing • No tracking • Privacy-first</p>
+      </div>
     </div>
   );
 }
