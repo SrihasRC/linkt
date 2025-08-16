@@ -17,6 +17,8 @@ export default function Home() {
   const [uploading, setUploading] = useState(false);
   const [accessCode, setAccessCode] = useState("");
   const [downloadUrl, setDownloadUrl] = useState("");
+  const [textShareCode, setTextShareCode] = useState("");
+  const [textUploading, setTextUploading] = useState(false);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -104,6 +106,46 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Download error:', error);
+    }
+  };
+
+  const handleShareText = async () => {
+    if (!clipboardText.trim()) return;
+    
+    setTextUploading(true);
+    
+    try {
+      const response = await fetch('/api/text', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: clipboardText,
+          language: 'text' // Could be detected based on content
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setTextShareCode(result.shareCode);
+      } else {
+        console.error('Text share failed:', result.error);
+      }
+    } catch (error) {
+      console.error('Text share error:', error);
+    } finally {
+      setTextUploading(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      // You could show a toast notification here
+    } catch (error) {
+      console.error('Failed to copy:', error);
     }
   };
 
@@ -318,16 +360,70 @@ export default function Home() {
                   />
                   
                   <div className="flex gap-3">
-                    <Button className="flex-1 h-12 hover-glow" disabled={!clipboardText.trim()}>
+                    <Button 
+                      className="flex-1 h-12 hover-glow" 
+                      disabled={!clipboardText.trim() || textUploading}
+                      onClick={handleShareText}
+                    >
                       <Link2 className="w-5 h-5 mr-3" />
-                      Share Text
+                      {textUploading ? "Sharing..." : "Share Text"}
                     </Button>
-                    <Button variant="outline" size="lg" className="glass px-4">
+                    <Button 
+                      variant="outline" 
+                      size="lg" 
+                      className="glass px-4"
+                      onClick={() => copyToClipboard(clipboardText)}
+                      disabled={!clipboardText.trim()}
+                    >
                       <Copy className="w-5 h-5" />
                     </Button>
                   </div>
                   
-                  {clipboardText.trim() && (
+                  {textShareCode && (
+                    <div className="bg-muted/10 rounded-lg p-4 border border-primary/20 glow-soft">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-medium text-primary">✨ Text Shared Successfully!</span>
+                        <Badge variant="secondary" className="text-xs">
+                          <Clock className="w-3 h-3 mr-1" />
+                          24h
+                        </Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="bg-card/20 rounded p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Share Code:</p>
+                          <div className="flex items-center gap-2">
+                            <code className="text-lg font-mono font-bold tracking-wider text-primary">{textShareCode}</code>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="hover-glow h-6 w-6 p-0"
+                              onClick={() => copyToClipboard(textShareCode)}
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="bg-card/20 rounded p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Direct Link:</p>
+                          <div className="flex items-center gap-2">
+                            <code className="text-xs text-muted-foreground truncate flex-1">
+                              {window.location.origin}/t/{textShareCode}
+                            </code>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="hover-glow h-6 w-6 p-0"
+                              onClick={() => copyToClipboard(`${window.location.origin}/t/${textShareCode}`)}
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {clipboardText.trim() && !textShareCode && (
                     <div className="bg-muted/10 rounded-lg p-4 border border-border/20">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-muted-foreground">Preview</span>
