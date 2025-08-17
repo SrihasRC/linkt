@@ -5,10 +5,10 @@ import { Stats } from "fs";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { code: string } }
+  { params }: { params: Promise<{ code: string }> }
 ) {
   try {
-    const { code } = params;
+    const { code } = await params;
     
     if (!code || code.length !== 6) {
       return NextResponse.json({ error: "Invalid share code" }, { status: 400 });

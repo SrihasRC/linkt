@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     
     try {
       await writeFile(join(uploadsDir, fileName), JSON.stringify(textData, null, 2));
-    } catch (error) {
+    } catch {
       // If uploads directory doesn't exist, create it
       const { mkdir } = await import("fs/promises");
       await mkdir(uploadsDir, { recursive: true });
