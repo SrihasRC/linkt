@@ -20,8 +20,8 @@ export function QRCodeGenerator({ text, size = 200, className = "" }: QRCodeGene
           width: size,
           margin: 2,
           color: {
-            dark: '#ffffff',
-            light: '#00000000' // Transparent background
+            dark: '#000000', // Black QR code
+            light: '#ffffff' // White background
           },
           errorCorrectionLevel: 'M'
         });
