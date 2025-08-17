@@ -2,7 +2,8 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, File, X, CheckCircle, AlertCircle } from "lucide-react";
+import Image from "next/image";
+import { Upload, File, X, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -16,7 +17,7 @@ interface FileUploadProps {
 
 export function FileUpload({ onFilesSelected }: FileUploadProps) {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
+  const [uploadProgress] = useState<{[key: string]: number}>({});
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map(file => 
@@ -111,9 +112,11 @@ export function FileUpload({ onFilesSelected }: FileUploadProps) {
                   {/* File Preview */}
                   <div className="flex-shrink-0">
                     {file.preview ? (
-                      <img
+                      <Image
                         src={file.preview}
                         alt={file.name}
+                        width={48}
+                        height={48}
                         className="h-12 w-12 object-cover rounded-lg"
                         onLoad={() => URL.revokeObjectURL(file.preview!)}
                       />
